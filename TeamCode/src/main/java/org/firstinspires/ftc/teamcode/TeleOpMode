@@ -1,0 +1,65 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+
+@TeleOp(name="TeleOp: Basic Drive", group="Main")
+public class PracticeTeleOp extends LinearOpMode {
+
+    private DcMotor motorLeftFront, motorRightFront, motorLeftBack, motorRightBack;
+
+    @Override
+    public void runOpMode() {
+        // === Initialize hardware ===
+        motorLeftFront  = hardwareMap.get(DcMotor.class, "motorLeftFront");
+        motorRightFront = hardwareMap.get(DcMotor.class, "motorRightFront");
+        motorLeftBack   = hardwareMap.get(DcMotor.class, "motorLeftBack");
+        motorRightBack  = hardwareMap.get(DcMotor.class, "motorRightBack");
+
+        // Reverse one side so forward is forward
+        motorLeftFront.setDirection(DcMotor.Direction.FORWARD);
+        motorLeftBack.setDirection(DcMotor.Direction.FORWARD);
+        motorRightFront.setDirection(DcMotor.Direction.REVERSE);
+        motorRightBack.setDirection(DcMotor.Direction.REVERSE);
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
+        // Wait for start button on Driver Station
+        waitForStart();
+
+        // === Run until stop is pressed ===
+        while (opModeIsActive()) {
+            // Read stick values (note: forward stick is negative)
+            double y = -gamepad1.left_stick_y;  // forward/backward
+            double x  = gamepad1.left_stick_x;  // left/right turn
+            double rx = gamepad1.right_stick_x; //rotate
+
+            // Arcade drive math
+            double frontLeftPower = y+x+rx;
+            double frontRightPower = y-x-rx;
+            double backRightPower = y+x-rx;
+            double backLeftPower = y-x+rx;
+
+            //make sure motors are [-1,1]
+            double max = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(backLeftPower)), Math.max(Math.abs(frontRightPower), Math.abs(backRightPower)));
+
+            if(max > 1.0) {
+                frontLeftPower /= max;
+                backLeftPower /= max;
+                frontRightPower /= max;
+                backRightPower /= max;
+            }
+
+
+            // Apply power to all 4 motors
+            motorLeftFront.setPower(frontLeftPower);
+            motorLeftBack.setPower(backLeftPower);
+            motorRightFront.setPower(frontRightPower);
+            motorRightBack.setPower(backRightPower);
+
+        }
+    }
+}

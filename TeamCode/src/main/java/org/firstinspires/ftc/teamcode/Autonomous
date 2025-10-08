@@ -1,0 +1,97 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Auto: Mecanum No Encoders", group="Main")
+public class AutoMecanumNoEncoders extends LinearOpMode {
+
+    private DcMotor motorLeftFront, motorLeftBack, motorRightFront, motorRightBack;
+
+    @Override
+    public void runOpMode() {
+        // === Initialize Motors ===
+        motorLeftFront  = hardwareMap.get(DcMotor.class, "motorLeftFront");
+        motorLeftBack   = hardwareMap.get(DcMotor.class, "motorLeftBack");
+        motorRightFront = hardwareMap.get(DcMotor.class, "motorRightFront");
+        motorRightBack  = hardwareMap.get(DcMotor.class, "motorRightBack");
+
+        // === Set Directions ===
+        motorLeftFront.setDirection(DcMotor.Direction.FORWARD);
+        motorLeftBack.setDirection(DcMotor.Direction.FORWARD);
+        motorRightFront.setDirection(DcMotor.Direction.REVERSE);
+        motorRightBack.setDirection(DcMotor.Direction.REVERSE);
+
+        // === Brake behavior ===
+        motorLeftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorLeftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorRightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorRightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        telemetry.addLine("Ready to start (Mecanum Auto)");
+        telemetry.update();
+
+        waitForStart();
+
+        if (opModeIsActive()) {
+            // Example sequence (edit timing/power to tune)
+
+            driveForward(1, 2);   // forward 2 sec
+      //      strafeLeft(0.2, 0.2);    // left 0.2 sec
+       //     turnRight(0.4, 0.2);      // spin right 1 sec
+
+            stopAllMotors();
+        }
+    }
+
+    // ================== Movement Helpers ==================
+
+    private void driveForward(double power, double seconds) {
+        setMotorPowers(power, power, power, power);
+        sleep((long)(seconds * 1000));
+        stopAllMotors();
+    }
+
+    private void driveBackward(double power, double seconds) {
+        setMotorPowers(-power, -power, -power, -power);
+        sleep((long)(seconds * 1000));
+        stopAllMotors();
+    }
+
+    private void strafeRight(double power, double seconds) {
+        // Mecanum strafing pattern
+        setMotorPowers(power, -power, -power, power);
+        sleep((long)(seconds * 1000));
+        stopAllMotors();
+    }
+
+    private void strafeLeft(double power, double seconds) {
+        setMotorPowers(-power, power, power, -power);
+        sleep((long)(seconds * 1000));
+        stopAllMotors();
+    }
+
+    private void turnRight(double power, double seconds) {
+        setMotorPowers(power, power, -power, -power);
+        sleep((long)(seconds * 1000));
+        stopAllMotors();
+    }
+
+    private void turnLeft(double power, double seconds) {
+        setMotorPowers(-power, -power, power, power);
+        sleep((long)(seconds * 1000));
+        stopAllMotors();
+    }
+
+    private void stopAllMotors() {
+        setMotorPowers(0, 0, 0, 0);
+    }
+
+    private void setMotorPowers(double lf, double lb, double rf, double rb) {
+        motorLeftFront.setPower(lf);
+        motorLeftBack.setPower(lb);
+        motorRightFront.setPower(rf);
+        motorRightBack.setPower(rb);
+    }
+}
