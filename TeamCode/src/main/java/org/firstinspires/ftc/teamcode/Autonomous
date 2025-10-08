@@ -38,8 +38,6 @@ public class AutoMecanumNoEncoders extends LinearOpMode {
             // Example sequence (edit timing/power to tune)
 
             driveForward(1, 2);   // forward 2 sec
-      //      strafeLeft(0.2, 0.2);    // left 0.2 sec
-       //     turnRight(0.4, 0.2);      // spin right 1 sec
 
             stopAllMotors();
         }
