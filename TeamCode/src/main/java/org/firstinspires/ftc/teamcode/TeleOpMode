@@ -2,13 +2,16 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
 @TeleOp(name="TeleOp: Basic Drive", group="Main")
-public class PracticeTeleOp extends LinearOpMode {
+public class TeleOpMode extends LinearOpMode {
 
-    private DcMotor motorLeftFront, motorRightFront, motorLeftBack, motorRightBack;
+    private DcMotor motorLeftFront, motorRightFront, motorLeftBack, motorRightBack, motorOuttake;
+    private CRServo servoRight, servoLeft;
+
 
     @Override
     public void runOpMode() {
@@ -17,15 +20,30 @@ public class PracticeTeleOp extends LinearOpMode {
         motorRightFront = hardwareMap.get(DcMotor.class, "motorRightFront");
         motorLeftBack   = hardwareMap.get(DcMotor.class, "motorLeftBack");
         motorRightBack  = hardwareMap.get(DcMotor.class, "motorRightBack");
+        motorOuttake = hardwareMap.get(DcMotor.class, "motorOuttake");
+
+        //Servos
+        servoLeft = hardwareMap.get(CRServo.class, "servoLeft");
+        servoRight = hardwareMap.get(CRServo.class, "servoRight");
 
         // Reverse one side so forward is forward
         motorLeftFront.setDirection(DcMotor.Direction.FORWARD);
         motorLeftBack.setDirection(DcMotor.Direction.FORWARD);
         motorRightFront.setDirection(DcMotor.Direction.REVERSE);
         motorRightBack.setDirection(DcMotor.Direction.REVERSE);
+        motorOuttake.setDirection(DcMotor.Direction.FORWARD);
 
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+//        double positionMotorLF = motorLeftFront.getCurrentPosition();
+//        double positionMotorLB = motorLeftRight.getCurrentPosition();
+//        double positionMotorRF = motorRightFront.getCurrentPosition();
+//        double positionMotorRB = motorRightBackgetCurrentPosition();
+//
+//        telemetry.addData("Position of Motor LF:", positionMotorLF);
+//        telemetry.addData("Position of Motor LB:", positionMotorLB);
+//        telemetry.addData("Position of Motor RF:", positionMotorLF);
+//        telemetry.addData("Position of Motor RB:", positionMotorLF);
+//        telemetry.addData("Status", "Initialized");
+//        telemetry.update();
 
         // Wait for start button on Driver Station
         waitForStart();
@@ -33,15 +51,15 @@ public class PracticeTeleOp extends LinearOpMode {
         // === Run until stop is pressed ===
         while (opModeIsActive()) {
             // Read stick values (note: forward stick is negative)
-            double y = -gamepad1.left_stick_y;  // forward/backward
+            double y = gamepad1.left_stick_y;  // forward/backward
             double x  = gamepad1.left_stick_x;  // left/right turn
             double rx = gamepad1.right_stick_x; //rotate
 
             // Arcade drive math
-            double frontLeftPower = y+x+rx;
-            double frontRightPower = y-x-rx;
-            double backRightPower = y+x-rx;
-            double backLeftPower = y-x+rx;
+            double frontLeftPower = y+x-rx;
+            double frontRightPower = y-x+rx;
+            double backRightPower = y+x+rx;
+            double backLeftPower = y-x-rx;
 
             //make sure motors are [-1,1]
             double max = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(backLeftPower)), Math.max(Math.abs(frontRightPower), Math.abs(backRightPower)));
@@ -55,10 +73,55 @@ public class PracticeTeleOp extends LinearOpMode {
 
 
             // Apply power to all 4 motors
-            motorLeftFront.setPower(frontLeftPower);
-            motorLeftBack.setPower(backLeftPower);
-            motorRightFront.setPower(frontRightPower);
-            motorRightBack.setPower(backRightPower);
+
+            if(gamepad1.left_trigger == 1) {
+                motorLeftFront.setPower(0.5*frontLeftPower);
+                motorLeftBack.setPower(0.5*backLeftPower);
+                motorRightFront.setPower(0.5*frontRightPower);
+                motorRightBack.setPower(0.5*backRightPower);
+            }
+            else {
+                motorLeftFront.setPower(frontLeftPower);
+                motorLeftBack.setPower(backLeftPower);
+                motorRightFront.setPower(frontRightPower);
+                motorRightBack.setPower(backRightPower);
+            }
+            //outtake motor
+            double outtakeSpeed = 0;
+            if(gamepad1.left_bumper == true) {
+                outtakeSpeed = 0.65;
+            }else if(gamepad1.right_bumper == true) {
+                outtakeSpeed = 0.7;
+            }else if(gamepad1.right_trigger == 1) {
+                outtakeSpeed = 0.85;
+            }else if(gamepad1.left_trigger == 1) {
+                outtakeSpeed = 0.75;
+            }
+            motorOuttake.setPower(outtakeSpeed);
+
+            //add 0 power behavior for brakes
+
+            //Servo Outtake
+            if(gamepad1.a) {
+                servoLeft.setPower(0.75);
+                servoRight.setPower(-0.75);
+                sleep(400);
+                servoLeft.setPower(0);
+                servoRight.setPower(0);
+
+            }
+            if(gamepad1.x) {
+                servoLeft.setPower(-0.75);
+                servoRight.setPower(0.75);
+                sleep(400);
+                servoLeft.setPower(0);
+                servoRight.setPower(0);
+
+            }
+
+            servoLeft.setPower(0);
+            servoRight.setPower(0);
+
 
         }
     }
