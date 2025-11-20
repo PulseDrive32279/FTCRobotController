@@ -2,94 +2,80 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import org.firstinspires.ftc.teamcode.drive.MecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.sequences.Actions;
 
-@Autonomous(name="Auto: Mecanum No Encoders", group="Main")
-public class AutoMecanumNoEncoders extends LinearOpMode {
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 
-    private DcMotor motorLeftFront, motorLeftBack, motorRightFront, motorRightBack;
+@Autonomous(name="RR Auto: Forward 80in, 180 turn, Shoot 3", group="Main")
+public class AutoDriveRRBlue extends LinearOpMode {
+
+    private CRServo servoRight, servoLeft;
+    private DcMotor motorOuttake;
 
     @Override
-    public void runOpMode() {
-        // === Initialize Motors ===
-        motorLeftFront  = hardwareMap.get(DcMotor.class, "motorLeftFront");
-        motorLeftBack   = hardwareMap.get(DcMotor.class, "motorLeftBack");
-        motorRightFront = hardwareMap.get(DcMotor.class, "motorRightFront");
-        motorRightBack  = hardwareMap.get(DcMotor.class, "motorRightBack");
+    public void runOpMode() throws InterruptedException {
 
-        // === Set Directions ===
-        motorLeftFront.setDirection(DcMotor.Direction.FORWARD);
-        motorLeftBack.setDirection(DcMotor.Direction.FORWARD);
-        motorRightFront.setDirection(DcMotor.Direction.REVERSE);
-        motorRightBack.setDirection(DcMotor.Direction.REVERSE);
+        // ----- Initialize Shooting Mechanisms -----
+        motorOuttake = hardwareMap.get(DcMotor.class, "motorOuttake");
+        servoLeft    = hardwareMap.get(CRServo.class, "servoLeft");
+        servoRight   = hardwareMap.get(CRServo.class, "servoRight");
 
-        // === Brake behavior ===
-        motorLeftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorLeftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorRightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorRightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // ----- Initialize Road Runner Drive -----
+        MecanumDrive drive = new MecanumDrive(hardwareMap);
 
-        telemetry.addLine("Ready to start (Mecanum Auto)");
-        telemetry.update();
+        // Start pose (0,0 facing forward)
+        Pose2d startPose = new Pose2d(0, 0, 0);
+        drive.setPoseEstimate(startPose);
 
         waitForStart();
 
-        if (opModeIsActive()) {
-            // Example sequence (edit timing/power to tune)
+        if (!opModeIsActive()) return;
 
-            driveForward(1, 2);   // forward 2 sec
+        // =====================================================
+        // == TRAJECTORY ACTIONS ==
+        // =====================================================
 
-            stopAllMotors();
-        }
+        Actions.runBlocking(
+                drive.actionBuilder(startPose)
+                        .forward(80)          // Drive forward 80 inches
+                        .turn(Math.toRadians(180)) // Rotate 180 degrees
+                        .build()
+        );
+
+        // =====================================================
+        // == SHOOT 3 RINGS ==
+        // =====================================================
+        shootRing();
+        sleep(200);
+
+        shootRing();
+        sleep(200);
+
+        shootRing();
+        sleep(200);
     }
 
-    // ================== Movement Helpers ==================
+    // =====================================================
+    // == HELPER: Shoot one ring ==
+    // =====================================================
+    private void shootRing() {
+        // spin intake/outtake
+        motorOuttake.setPower(0.85);
 
-    private void driveForward(double power, double seconds) {
-        setMotorPowers(power, power, power, power);
-        sleep((long)(seconds * 1000));
-        stopAllMotors();
-    }
+        // fire ring
+        servoLeft.setPower(0.75);
+        servoRight.setPower(-0.75);
 
-    private void driveBackward(double power, double seconds) {
-        setMotorPowers(-power, -power, -power, -power);
-        sleep((long)(seconds * 1000));
-        stopAllMotors();
-    }
+        sleep(270);
 
-    private void strafeRight(double power, double seconds) {
-        // Mecanum strafing pattern
-        setMotorPowers(power, -power, -power, power);
-        sleep((long)(seconds * 1000));
-        stopAllMotors();
-    }
+        // reset servos
+        servoLeft.setPower(0);
+        servoRight.setPower(0);
 
-    private void strafeLeft(double power, double seconds) {
-        setMotorPowers(-power, power, power, -power);
-        sleep((long)(seconds * 1000));
-        stopAllMotors();
-    }
-
-    private void turnRight(double power, double seconds) {
-        setMotorPowers(power, power, -power, -power);
-        sleep((long)(seconds * 1000));
-        stopAllMotors();
-    }
-
-    private void turnLeft(double power, double seconds) {
-        setMotorPowers(-power, -power, power, power);
-        sleep((long)(seconds * 1000));
-        stopAllMotors();
-    }
-
-    private void stopAllMotors() {
-        setMotorPowers(0, 0, 0, 0);
-    }
-
-    private void setMotorPowers(double lf, double lb, double rf, double rb) {
-        motorLeftFront.setPower(lf);
-        motorLeftBack.setPower(lb);
-        motorRightFront.setPower(rf);
-        motorRightBack.setPower(rb);
+        sleep(200);
     }
 }
